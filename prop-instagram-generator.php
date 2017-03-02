@@ -301,7 +301,7 @@ class AdminArea {
 						<table class="form-table">
 							<tbody>
 							<tr>
-								<th scope="row"><label for="username">INSTAGRAM USERNAME</label></th>
+								<th scope="row"><label for="username">Instagram Username</label></th>
 								<td>
 									<input type="text" name="user_id" required="" id="user_id" value=""
 									       class="regular-text"
