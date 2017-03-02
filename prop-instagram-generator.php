@@ -129,6 +129,7 @@ class AdminArea {
 			add_action( 'admin_head', [ $this, 'instagram_styles' ] );
 
 			add_theme_support( 'post-thumbnails' );
+			add_image_size('admin_thumb', 60, 60);
 			add_filter( 'manage_posts_columns', [ $this, 'add_img_column' ] );
 			add_filter( 'manage_posts_custom_column', [ $this, 'manage_img_column' ], 10, 2 );
 
@@ -148,10 +149,9 @@ class AdminArea {
 
 	public function manage_img_column( $column_name, $post_id ) {
 		if( $column_name == 'img' ) {
-			echo get_the_post_thumbnail($post_id, array(50,50));
+			echo the_post_thumbnail('admin_thumb');
+			return get_the_post_thumbnail($post_id, 'thumbnail');
 		}
-
-		return true;
 	}
 
 	public function create_admin_menu() {
