@@ -363,7 +363,7 @@ class AdminArea {
 
 				<? endforeach; ?>
 				<p style='color:green'>Generator Task Completed Successfully!</p>
-				<a class="button button-primary" href="/edit.php?post_type=instagram-posts">See Generated Links</a>
+				<a class="button button-primary" href="/wp-admin/edit.php?post_type=instagram-posts">See Generated Links</a>
 			<? endif; ?>
 
 		<?php
