@@ -14,22 +14,35 @@ if ( ! defined( 'ABSPATH' ) ) {
 }
 
 
-class InstagramPosts {
+class DataHandling {
+	public static function fetch( $url ) {
+
+		$ch = curl_init();
+		curl_setopt( $ch, CURLOPT_URL, $url );
+		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
+		curl_setopt( $ch, CURLOPT_TIMEOUT, 20 );
+		$result = curl_exec( $ch );
+		curl_close( $ch );
+
+		return $result;
+
+	}
+}
+
+class InstagramUsers {
 
 	public $result;
 	public $error = false;
-
-	private $user_id = '414143281';
 	private $access_token = '414143281.e2a9043.6d4acb839c38488f831d826bf29d32fe';
 
 
-	public function __construct( $count = 20 ) {
+	public function __construct( $count = 4 ) {
 
 		$this->count = $count;
 
 		try {
 
-			$this->result = json_decode( $this->fetch( 'https://api.instagram.com/v1/users/' . $this->user_id . '/media/recent?count=' . $this->count . '&access_token=' . $this->access_token ) );
+			$this->result = json_decode( DataHandling::fetch( 'https://api.instagram.com/v1/users/search?q=' . $_POST['user_id'] . '&access_token=' . $this->access_token . '&count=' . $this->count ) );
 
 			if ( isset( $this->result->meta->error_message ) ) {
 				$this->error = $this->result->meta->error_message;
@@ -43,20 +56,38 @@ class InstagramPosts {
 
 	}
 
-	public function fetch( $url ) {
+}
 
-		$ch = curl_init();
-		curl_setopt( $ch, CURLOPT_URL, $url );
-		curl_setopt( $ch, CURLOPT_RETURNTRANSFER, 1 );
-		curl_setopt( $ch, CURLOPT_TIMEOUT, 20 );
-		$result = curl_exec( $ch );
-		curl_close( $ch );
+class InstagramPosts {
 
-		return $result;
+	public $result;
+	public $error = false;
+
+	private $access_token = '414143281.e2a9043.6d4acb839c38488f831d826bf29d32fe';
+
+
+	public function __construct( $count = 30 ) {
+
+		$this->count = $count;
+
+		try {
+
+			$this->result = json_decode( DataHandling::fetch( 'https://api.instagram.com/v1/users/' . $_POST['chosen_user'] . '/media/recent?count=' . $this->count . '&access_token=' . $this->access_token ) );
+
+			if ( isset( $this->result->meta->error_message ) ) {
+				$this->error = $this->result->meta->error_message;
+			} else {
+				$this->result = $this->result->data;
+			}
+
+		} catch ( Exception $e ) {
+			$this->error = $e->getMessage();
+		}
 
 	}
 
 }
+
 
 class AdminArea {
 
@@ -97,13 +128,30 @@ class AdminArea {
 			add_action( 'admin_init', [ $this, 'register_admin_settings' ] );
 			add_action( 'admin_head', [ $this, 'instagram_styles' ] );
 
+			add_theme_support( 'post-thumbnails' );
+			add_filter( 'manage_posts_columns', [ $this, 'add_img_column' ] );
+			add_filter( 'manage_posts_custom_column', [ $this, 'manage_img_column' ], 10, 2 );
+
 			if ( ! post_type_exists( 'instagram-posts' ) ) {
 				add_action( 'init', [ $this, 'create_post_type' ] );
-				add_theme_support( 'post-thumbnails' );
 			}
 
 		}
 
+	}
+
+	public function add_img_column( $columns ) {
+		$columns['img'] = 'Featured Image';
+
+		return $columns;
+	}
+
+	public function manage_img_column( $column_name, $post_id ) {
+		if( $column_name == 'img' ) {
+			echo get_the_post_thumbnail($post_id, array(50,50));
+		}
+
+		return true;
 	}
 
 	public function create_admin_menu() {
@@ -201,61 +249,122 @@ class AdminArea {
 
 		<div class="wrap">
 		<h1>Propeller Instagram Generator</h1>
-		<h2>Select which images to use for post generation</h2>
-		<br>
+		<?php  //var_dump( $_POST ); ?>
 
+			<?php if ( isset( $_POST['scraped_users'] ) ): ?>
+				<?php $instagramUsers = new InstagramUsers; ?>
+				<?php if ( isset( $instagramUsers->result ) ): ?>
+					<h2>Please select an account to scrape images from</h2>
+					<form method="post" action="" class="ig_generator">
+						<table class="wp-list-table widefat fixed striped pages">
+							<thead>
+							<tr>
+								<th scope="col" id="author">
+									<a href="#"><span>User</span></a>
+								</th>
+								<th scope="col" id="date">
+									<a href="#"><span>Fetch</span></a>
+								</th>
+							</tr>
+							</thead>
+							<tbody id="the-list">
+							<?php foreach ( $instagramUsers->result as $scraped_user ): ?>
 
-		<?php
-
-		if ( is_plugin_active( 'advanced-custom-fields-pro/acf.php' ) ) : ?>
-			<?php $instagram = new InstagramPosts; ?>
-
-			<?php if ( $instagram->error ): ?>
-				<p style="color:red"><?php echo $instagram->error ?></p>
-			<?php else: ?>
-
-				<?php
-
-				if ( ! empty( $_POST['scraped_id'] ) && isset( $_POST['post_nonce_field'] ) ) : ?>
-					<?php $post_generator = new PostGenerator(); ?>
-					<?php foreach ( $instagram->result as $unmatched_id ): ?>
-
-						<? if ( in_array( $unmatched_id->id, $_POST['scraped_id'] ) ): ?>
-							<?php $post_generator::populate_posts( $unmatched_id ); ?>
-						<? endif; ?>
-
-					<? endforeach; ?>
-					<p style='color:green'>Ran Generator Successfully!</p>
-
-
-				<?php else: ?>
-					<h3>Instagram</h3>
-					<form method="post" action="" enctype="multipart/form-data">
-						<ul class="ig_generator">
-							<?php foreach ( $instagram->result as $photo ): ?>
-
-								<li>
-									<input type="checkbox" id="<?php echo $photo->id ?>" name="scraped_id[]"
-									       value="<?php echo $photo->id ?>"/>
-
-									<label for="<?php echo $photo->id ?>">
-										<img src="<?php echo $photo->images->low_resolution->url ?>" width="125" height"125"/>
-									</label>
-								</li>
+								<tr>
+									<td data-colname="Author">
+										<img src="<?= $scraped_user->profile_picture; ?>"
+										     alt="<?= $scraped_user->username; ?>" width="50"/>
+										<?= $scraped_user->username; ?>
+									</td>
+									<td>
+										<?php wp_nonce_field( 'post_nonce', 'post_nonce_id' ); ?>
+										<button type="submit" name="chosen_user" id="submit"
+										        value="<?= $scraped_user->id; ?>"
+										        class="button button-primary">Fetch
+										</button>
+									</td>
+								</tr>
 
 							<?php endforeach; ?>
-						</ul>
-						<?php wp_nonce_field( 'post_nonce', 'post_nonce_field' ); ?>
-						<p class="submit"><input type="submit" name="submit" id="submit" value="Generate"
-						                         class="button button-primary">
-						</p>
+							</tbody>
+						</table>
 					</form>
-				<?php endif; ?>
+				<? endif; ?>
+
+			<?php else: ?>
+
+				<? if ( empty( $_POST['chosen_user'] ) && empty( $_POST['post_nonce_images'] ) ): ?>
+
+					<h2>Please enter a username to search for</h2>
+
+					<form method="post" action="">
+						<table class="form-table">
+							<tbody>
+							<tr>
+								<th scope="row"><label for="username">INSTAGRAM USERNAME</label></th>
+								<td>
+									<input type="text" name="user_id" required="" id="user_id" value=""
+									       class="regular-text"
+									       autocomplete="off">
+								</td>
+							</tr>
+							</tbody>
+						</table>
+						<?php wp_nonce_field( 'post_nonce', 'post_nonce_user' ); ?>
+						<input type="submit" name="scraped_users" id="submit" value="Scrape"
+						       class="button button-primary">
+					</form>
+
+				<? endif; ?>
+
 			<?php endif; ?>
-		<? else: ?>
-			<p style='color:red'>Please activate Advanced Custom Fields to use the Instagram Post Generator</p>
-			</div>
-		<?php endif; ?>
+
+			<?php if ( isset( $_POST['chosen_user'] ) && isset( $_POST['post_nonce_id'] ) ) : ?>
+
+				<?php $instagram = new InstagramPosts; ?>
+
+				<h3>Instagram</h3>
+				<form name="get_images" method="post" action="" enctype="multipart/form-data">
+					<ul class="ig_generator">
+						<?php foreach ( $instagram->result as $photo ): ?>
+
+							<li>
+								<input type="checkbox" id="<?php echo $photo->id ?>" name="scraped_id[]"
+								       value="<?php echo $photo->id ?>"/>
+
+								<label for="<?php echo $photo->id ?>">
+									<img src="<?php echo $photo->images->low_resolution->url ?>" width="125"
+									     height"125"/>
+								</label>
+							</li>
+
+						<?php endforeach; ?>
+					</ul>
+					<?php wp_nonce_field( 'post_nonce', 'post_nonce_images' ); ?>
+					<p class="submit">
+						<input type="hidden" name="chosen_user" value="<?= $_POST['chosen_user'] ?>"/>
+						<input type="submit" name="chosen_posts" id="submit" value="Generate"
+						       class="button button-primary">
+					</p>
+				</form>
+
+			<?php endif; ?>
+
+			<? if ( ! empty( $_POST['scraped_id'] ) && isset( $_POST['post_nonce_images'] ) ): ?>
+
+				<?php $instagram = new InstagramPosts; ?>
+				<?php $post_generator = new PostGenerator(); ?>
+
+				<?php foreach ( $instagram->result as $unmatched_id ): ?>
+
+					<? if ( in_array( $unmatched_id->id, $_POST['scraped_id'] ) ): ?>
+						<?php $post_generator::populate_posts( $unmatched_id ); ?>
+					<? endif; ?>
+
+				<? endforeach; ?>
+				<p style='color:green'>Generator Task Completed Successfully!</p>
+				<a class="button button-primary" href="/edit.php?post_type=instagram-posts">See Generated Links</a>
+			<? endif; ?>
 
 		<?php
 
@@ -264,7 +373,7 @@ class AdminArea {
 	public function instagram_styles() {
 		echo '
 	<style>
-	    ul.ig_generator {
+	    .ig_generator {
 	        display: block;
 	        width: 100%;
 	        max-width: 800px;
@@ -339,6 +448,7 @@ class PostGenerator {
 		require_once( ABSPATH . 'wp-admin/includes/image.php' );
 		require_once( ABSPATH . '/wp-admin/includes/post.php' );
 		flush_rewrite_rules();
+
 	}
 
 	public static function get_photo_name( $data ) {
