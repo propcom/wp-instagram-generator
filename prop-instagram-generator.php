@@ -71,8 +71,6 @@ class InstagramPosts {
 		$this->count      = $count;
 		$this->pagination = isset( $_POST['next_max_id'] ) ? '&max_id=' . $_POST['next_max_id'] : '';
 
-		var_dump( isset( $_POST['next_max_id'] ) ? $_POST['next_max_id'] : 'wanker' );
-
 		try {
 
 			$this->result = json_decode( DataHandling::fetch( 'https://api.instagram.com/v1/users/' . $_POST['chosen_user'] . '/media/recent?access_token=' . $this->access_token . '&count=' . $this->count . $this->pagination ) );
