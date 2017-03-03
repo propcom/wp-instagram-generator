@@ -47,7 +47,7 @@ class InstagramUsers {
 			if ( isset( $this->result->meta->error_message ) ) {
 				$this->error = $this->result->meta->error_message;
 			} else {
-				$this->result = $this->result->data;
+				$this->result;
 			}
 
 		} catch ( Exception $e ) {
@@ -68,16 +68,22 @@ class InstagramPosts {
 
 	public function __construct( $count = 30 ) {
 
-		$this->count = $count;
+		$this->count      = $count;
+		$this->pagination = isset( $_POST['next_max_id'] ) ? '&max_id=' . $_POST['next_max_id'] : '';
+
+		var_dump( isset( $_POST['next_max_id'] ) ? $_POST['next_max_id'] : 'wanker' );
 
 		try {
 
-			$this->result = json_decode( DataHandling::fetch( 'https://api.instagram.com/v1/users/' . $_POST['chosen_user'] . '/media/recent?count=' . $this->count . '&access_token=' . $this->access_token ) );
+			$this->result = json_decode( DataHandling::fetch( 'https://api.instagram.com/v1/users/' . $_POST['chosen_user'] . '/media/recent?access_token=' . $this->access_token . '&count=' . $this->count . $this->pagination ) );
 
 			if ( isset( $this->result->meta->error_message ) ) {
 				$this->error = $this->result->meta->error_message;
 			} else {
-				$this->result = $this->result->data;
+
+				$this->result;
+
+
 			}
 
 		} catch ( Exception $e ) {
@@ -129,7 +135,7 @@ class AdminArea {
 			add_action( 'admin_head', [ $this, 'instagram_styles' ] );
 
 			add_theme_support( 'post-thumbnails' );
-			add_image_size('admin_thumb', 60, 60);
+			add_image_size( 'admin_thumb', 60, 60 );
 			add_filter( 'manage_posts_columns', [ $this, 'add_img_column' ] );
 			add_filter( 'manage_posts_custom_column', [ $this, 'manage_img_column' ], 10, 2 );
 
@@ -148,9 +154,10 @@ class AdminArea {
 	}
 
 	public function manage_img_column( $column_name, $post_id ) {
-		if( $column_name == 'img' ) {
-			echo the_post_thumbnail('admin_thumb');
-			return get_the_post_thumbnail($post_id, 'thumbnail');
+		if ( $column_name == 'img' ) {
+			echo the_post_thumbnail( 'admin_thumb' );
+
+			return get_the_post_thumbnail( $post_id, 'thumbnail' );
 		}
 	}
 
@@ -249,122 +256,141 @@ class AdminArea {
 
 		<div class="wrap">
 		<h1>Propeller Instagram Generator</h1>
-		<?php  //var_dump( $_POST ); ?>
+		<?php //var_dump( $_POST ); ?>
 
-			<?php if ( isset( $_POST['scraped_users'] ) ): ?>
-				<?php $instagramUsers = new InstagramUsers; ?>
-				<?php if ( isset( $instagramUsers->result ) ): ?>
-					<h2>Please select an account to scrape images from</h2>
-					<form method="post" action="" class="ig_generator">
-						<table class="wp-list-table widefat fixed striped pages">
-							<thead>
+		<?php if ( isset( $_POST['scraped_users'] ) ): ?>
+			<?php $instagramUsers = new InstagramUsers; ?>
+			<?php if ( isset( $instagramUsers->result ) ): ?>
+				<h2>Please select an account to scrape images from</h2>
+				<form method="post" action="" class="ig_generator">
+					<table class="wp-list-table widefat fixed striped pages">
+						<thead>
+						<tr>
+							<th scope="col" id="author">
+								<a href="#"><span>User</span></a>
+							</th>
+							<th scope="col" id="date">
+								<a href="#"><span>Fetch</span></a>
+							</th>
+						</tr>
+						</thead>
+						<tbody id="the-list">
+						<?php foreach ( $instagramUsers->result->data as $scraped_user ): ?>
+
 							<tr>
-								<th scope="col" id="author">
-									<a href="#"><span>User</span></a>
-								</th>
-								<th scope="col" id="date">
-									<a href="#"><span>Fetch</span></a>
-								</th>
-							</tr>
-							</thead>
-							<tbody id="the-list">
-							<?php foreach ( $instagramUsers->result as $scraped_user ): ?>
-
-								<tr>
-									<td data-colname="Author">
-										<img src="<?= $scraped_user->profile_picture; ?>"
-										     alt="<?= $scraped_user->username; ?>" width="50"/>
-										<?= $scraped_user->username; ?>
-									</td>
-									<td>
-										<?php wp_nonce_field( 'post_nonce', 'post_nonce_id' ); ?>
-										<button type="submit" name="chosen_user" id="submit"
-										        value="<?= $scraped_user->id; ?>"
-										        class="button button-primary">Fetch
-										</button>
-									</td>
-								</tr>
-
-							<?php endforeach; ?>
-							</tbody>
-						</table>
-					</form>
-				<? endif; ?>
-
-			<?php else: ?>
-
-				<? if ( empty( $_POST['chosen_user'] ) && empty( $_POST['post_nonce_images'] ) ): ?>
-
-					<h2>Please enter a username to search for</h2>
-
-					<form method="post" action="">
-						<table class="form-table">
-							<tbody>
-							<tr>
-								<th scope="row"><label for="username">Instagram Username</label></th>
+								<td data-colname="Author">
+									<img src="<?= $scraped_user->profile_picture; ?>"
+									     alt="<?= $scraped_user->username; ?>" width="50"/>
+									<?= $scraped_user->username; ?>
+								</td>
 								<td>
-									<input type="text" name="user_id" required="" id="user_id" value=""
-									       class="regular-text"
-									       autocomplete="off">
+									<?php wp_nonce_field( 'post_nonce', 'post_nonce_id' ); ?>
+									<button type="submit" name="chosen_user" id="submit"
+									        value="<?= $scraped_user->id; ?>"
+									        class="button button-primary">Fetch
+									</button>
 								</td>
 							</tr>
-							</tbody>
-						</table>
-						<?php wp_nonce_field( 'post_nonce', 'post_nonce_user' ); ?>
-						<input type="submit" name="scraped_users" id="submit" value="Scrape"
-						       class="button button-primary">
-					</form>
-
-				<? endif; ?>
-
-			<?php endif; ?>
-
-			<?php if ( isset( $_POST['chosen_user'] ) && isset( $_POST['post_nonce_id'] ) ) : ?>
-
-				<?php $instagram = new InstagramPosts; ?>
-
-				<h3>Instagram</h3>
-				<form name="get_images" method="post" action="" enctype="multipart/form-data">
-					<ul class="ig_generator">
-						<?php foreach ( $instagram->result as $photo ): ?>
-
-							<li>
-								<input type="checkbox" id="<?php echo $photo->id ?>" name="scraped_id[]"
-								       value="<?php echo $photo->id ?>"/>
-
-								<label for="<?php echo $photo->id ?>">
-									<img src="<?php echo $photo->images->low_resolution->url ?>" width="125"
-									     height"125"/>
-								</label>
-							</li>
 
 						<?php endforeach; ?>
-					</ul>
-					<?php wp_nonce_field( 'post_nonce', 'post_nonce_images' ); ?>
-					<p class="submit">
-						<input type="hidden" name="chosen_user" value="<?= $_POST['chosen_user'] ?>"/>
-						<input type="submit" name="chosen_posts" id="submit" value="Generate"
-						       class="button button-primary">
-					</p>
+						</tbody>
+					</table>
+				</form>
+			<? endif; ?>
+
+		<?php else: ?>
+
+			<? if ( empty( $_POST['chosen_user'] ) && empty( $_POST['post_nonce_images'] ) ): ?>
+
+				<h2>Please enter a username to search for</h2>
+
+				<form method="post" action="">
+					<table class="form-table">
+						<tbody>
+						<tr>
+							<th scope="row"><label for="username">Instagram Username</label></th>
+							<td>
+								<input type="text" name="user_id" required="" id="user_id" value=""
+								       class="regular-text"
+								       autocomplete="off">
+							</td>
+						</tr>
+						</tbody>
+					</table>
+					<?php wp_nonce_field( 'post_nonce', 'post_nonce_user' ); ?>
+					<input type="submit" name="scraped_users" id="submit" value="Scrape"
+					       class="button button-primary">
 				</form>
 
-			<?php endif; ?>
-
-			<? if ( ! empty( $_POST['scraped_id'] ) && isset( $_POST['post_nonce_images'] ) ): ?>
-
-				<?php $instagram = new InstagramPosts; ?>
-				<?php $post_generator = new PostGenerator(); ?>
-
-				<?php foreach ( $instagram->result as $unmatched_id ): ?>
-
-					<? if ( in_array( $unmatched_id->id, $_POST['scraped_id'] ) ): ?>
-						<?php $post_generator::populate_posts( $unmatched_id ); ?>
-					<? endif; ?>
-
-				<? endforeach; ?>
-				<p style='color:green'>Generator Task Completed Successfully!</p>
-				<a class="button button-primary" href="<?= admin_url( 'edit.php?post_type=instagram-posts') ?>">See Generated Links</a>
 			<? endif; ?>
+
+		<?php endif; ?>
+
+		<?php if ( isset( $_POST['chosen_user'] ) && empty( $_POST['scraped_id'] ) ) : ?>
+
+			<?php $instagram = new InstagramPosts; ?>
+
+			<h3>Instagram</h3>
+			<form name="get_images" method="post" action="" enctype="multipart/form-data">
+				<ul class="ig_generator">
+					<?php foreach ( $instagram->result->data as $photo ): ?>
+
+						<li>
+							<input type="checkbox" id="<?php echo $photo->id ?>" name="scraped_id[]"
+							       value="<?php echo $photo->id ?>"/>
+
+							<label for="<?php echo $photo->id ?>">
+								<img src="<?php echo $photo->images->low_resolution->url ?>" width="125"
+								     height"125"/>
+							</label>
+						</li>
+
+					<?php endforeach; ?>
+				</ul>
+
+				<p class="submit">
+					<input type="hidden" name="chosen_user" value="<?= $_POST['chosen_user'] ?>"/>
+					<? if ( isset( $instagram->result->pagination->next_max_id ) ): ?>
+						<? if ( isset( $_POST['next_max_id'] ) ): ?>
+							<input type="hidden" name="next_max_id" value="<?= $_POST['next_max_id'] ?>"/>
+						<? endif; ?>
+					<? endif; ?>
+					<input type="submit" name="chosen_posts" id="submit" value="Generate"
+					       class="button button-primary">
+				</p>
+
+				<? if ( isset( $instagram->result->pagination->next_max_id ) ): ?>
+					<? if ( isset( $_POST['next_max_id'] ) ): ?>
+						<input type="hidden" name="max_id" value="<?= $_POST['next_max_id'] ?>"/>
+					<? endif; ?>
+					<button type="submit" name="next_max_id" id="submit"
+					        value="<?= $instagram->result->pagination->next_max_id; ?>"
+					        class="button button-primary">Next Page
+					</button>
+				<? endif; ?>
+
+
+			</form>
+
+
+		<?php endif; ?>
+
+		<? if ( ! empty( $_POST['scraped_id'] ) ): ?>
+
+			<?php $instagram = new InstagramPosts; ?>
+			<?php $post_generator = new PostGenerator(); ?>
+
+			<?php foreach ( $instagram->result->data as $unmatched_id ): ?>
+
+				<? if ( in_array( $unmatched_id->id, $_POST['scraped_id'] ) ): ?>
+					<?php $post_generator::populate_posts( $unmatched_id ); ?>
+				<? endif; ?>
+
+			<? endforeach; ?>
+			<p style='color:green'>Generator Task Completed Successfully!</p>
+			<a class="button button-primary" href="<?= admin_url( 'edit.php?post_type=instagram-posts' ) ?>">See
+				Generated Links</a>
+		<? endif; ?>
 
 		<?php
 
