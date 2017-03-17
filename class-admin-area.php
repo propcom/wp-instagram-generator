@@ -238,7 +238,7 @@ class AdminArea {
 									<input id="searchinput"
 									       value=""
 									       class="regular-text"
-									       pattern="[A-Za-z0-9]+"
+									       pattern="^[A-Za-z0-9_]{1,32}$"
 									       type="text"
 									       name="searchinput"
 									       required="required"
