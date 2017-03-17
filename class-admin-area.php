@@ -265,7 +265,7 @@ class AdminArea {
 					<h3 class="error">ERROR</h3>
 					<h4>Sorry, InstaProp failed to fetch images</h4>
 					<?php $error_msg = $instagram->error->getMessage();
-					var_dump($error_msg);
+					//var_dump($error_msg);
 					if ( $error_msg == 'you cannot view this resource' ): ?>
 						<p>This is usually due to trying to fetch a private users content</p>
 					<? else: ?>
