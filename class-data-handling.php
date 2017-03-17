@@ -31,7 +31,7 @@ class InstagramFetch {
 
 			$url = $this->get_searchurl( $_POST['searchtype'], $_POST['searchinput'] );
 
-			var_dump($url);
+			//var_dump($url);
 
 			$this->result = json_decode( DataHandling::fetch( $url ) );
 
