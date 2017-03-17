@@ -74,3 +74,8 @@
 .float--right {
 	float: right;
 }
+
+.list li strong {
+	display: inline-block;
+	min-width: 100px;
+}

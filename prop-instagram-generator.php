@@ -10,6 +10,19 @@
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 } else {
+
+	function enqueue_styles() {
+		wp_enqueue_style( 'prop-instagram-generator', plugin_dir_url( __FILE__ ) . 'style.css', array(), '1.0', 'all' );
+	}
+
+	function enqueue_scripts() {
+		wp_enqueue_script( 'prop-instagram-generator', plugin_dir_url( __FILE__ ) . 'script.js', array(), '1.0', 'all' );
+	}
+
+	add_action( 'admin_head',  'enqueue_styles' );
+	add_action( 'admin_head',  'enqueue_scripts' );
+
+
 	require_once plugin_dir_path( dirname( __FILE__ ) ) . 'wp-instagram-generator/class-data-handling.php';
 	require_once plugin_dir_path( dirname( __FILE__ ) ) . 'wp-instagram-generator/class-admin-area.php';
 	require_once plugin_dir_path( dirname( __FILE__ ) ) . 'wp-instagram-generator/class-post-generator.php';

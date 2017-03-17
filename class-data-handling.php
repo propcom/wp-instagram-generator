@@ -15,41 +15,11 @@ class DataHandling {
 	}
 }
 
-class InstagramUsers {
+class InstagramFetch {
 
 	public $result;
 	public $error = false;
-	private $access_token = '414143281.e2a9043.6d4acb839c38488f831d826bf29d32fe';
-
-
-	public function __construct( $count = 4 ) {
-
-		$this->count = $count;
-
-		try {
-
-			$this->result = json_decode( DataHandling::fetch( 'https://api.instagram.com/v1/users/search?q=' . $_POST['user_id'] . '&access_token=' . $this->access_token . '&count=' . $this->count ) );
-
-			if ( isset( $this->result->meta->error_message ) ) {
-				$this->error = $this->result->meta->error_message;
-			} else {
-				$this->result;
-			}
-
-		} catch ( Exception $e ) {
-			$this->error = $e->getMessage();
-		}
-
-	}
-
-}
-
-class InstagramPosts {
-
-	public $result;
-	public $error = false;
-
-	private $access_token = '414143281.e2a9043.6d4acb839c38488f831d826bf29d32fe';
+	const ACCESS_TOKEN = '414143281.e2a9043.6d4acb839c38488f831d826bf29d32fe';
 
 
 	public function __construct( $count = 30 ) {
@@ -59,18 +29,31 @@ class InstagramPosts {
 
 		try {
 
-			$this->result = json_decode( DataHandling::fetch( 'https://api.instagram.com/v1/users/' . $_POST['chosen_user'] . '/media/recent?access_token=' . $this->access_token . '&count=' . $this->count . $this->pagination ) );
+			$url = $this->get_searchurl( $_POST['searchtype'], $_POST['searchinput'] );
+
+			var_dump($url);
+
+			$this->result = json_decode( DataHandling::fetch( $url ) );
 
 			if ( isset( $this->result->meta->error_message ) ) {
 				$this->error = $this->result->meta->error_message;
 			} else {
-
 				$this->result;
 
 			}
 
 		} catch ( Exception $e ) {
 			$this->error = $e->getMessage();
+		}
+
+	}
+
+	protected function get_searchurl( $searchtype, $searchinput ) {
+
+		if ( $searchtype == 'users' && isset($_POST['checktype']) && $_POST['checktype'] == 'users' ) {
+			return sprintf( 'https://api.instagram.com/v1/%s/search?q=%s&access_token=%s&count=%s', $searchtype, $searchinput, static::ACCESS_TOKEN, $this->count );
+		} else {
+			return sprintf( 'https://api.instagram.com/v1/%s/%s/media/recent?access_token=%s&count=%s%s', $searchtype, $searchinput, static::ACCESS_TOKEN, $this->count, $this->pagination );
 		}
 
 	}
