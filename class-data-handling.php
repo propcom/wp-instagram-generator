@@ -30,20 +30,20 @@ class InstagramFetch {
 		try {
 
 			$url = $this->get_searchurl( $_POST['searchtype'], $_POST['searchinput'] );
-
 			//var_dump($url);
 
 			$this->result = json_decode( DataHandling::fetch( $url ) );
 
 			if ( isset( $this->result->meta->error_message ) ) {
-				$this->error = $this->result->meta->error_message;
+				$error = new Exception($this->result->meta->error_message, $this->result->meta->code, null);
+				throw $error;
 			} else {
 				$this->result;
-
 			}
 
 		} catch ( Exception $e ) {
-			$this->error = $e->getMessage();
+			$this->error = $e;
+			//var_dump($this->error);
 		}
 
 	}

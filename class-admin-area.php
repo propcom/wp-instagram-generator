@@ -161,7 +161,7 @@ class AdminArea {
 		<section class="wrap">
 
 			<h1>Propeller Instagram Generator</h1>
-			<?php //var_dump( $_POST ); ?>
+			<?php // var_dump( $_POST ); ?>
 
 			<?php if ( isset( $_POST['searchinput'] ) && $_POST['searchtype'] == 'users' && isset( $_POST['checktype'] ) && $_POST['checktype'] == 'users' ): ?>
 				<?php $instagramUsers = new InstagramFetch; ?>
@@ -210,6 +210,7 @@ class AdminArea {
 
 					<h4>Please select a search type</h4>
 
+
 					<form method="post" action="">
 						<ul class="list">
 							<li>
@@ -228,14 +229,20 @@ class AdminArea {
 									it</a>
 							</li>
 						</ul>
+
 						<table class="form-table">
 							<tbody>
 							<tr>
 								<th scope="row"><label for="searchinput">Search Input</label></th>
 								<td>
-									<input pattern="[A-Za-z0-9]+" type="text" name="searchinput" required=""
-									       id="searchinput" value=""
+									<input id="searchinput"
+									       value=""
 									       class="regular-text"
+									       pattern="[A-Za-z0-9]+"
+									       type="text"
+									       name="searchinput"
+									       required="required"
+									       placeholder="no need to specify @ or # symbols"
 									       autocomplete="on">
 								</td>
 							</tr>
@@ -254,58 +261,74 @@ class AdminArea {
 
 				<?php $instagram = new InstagramFetch; ?>
 
-				<h3>Instagram</h3>
-				<h4>Select which images you wish to import</h4>
-				<p>Select images from a single page then click generate</p>
-				<form name="get_images" method="post" action="" enctype="multipart/form-data">
+				<?php if ( $instagram->error ) : ?>
+					<h3 class="error">ERROR</h3>
+					<h4>Sorry, InstaProp failed to fetch images</h4>
+					<?php $error_msg = $instagram->error->getMessage();
+					var_dump($error_msg);
+					if ( $error_msg == 'you cannot view this resource' ): ?>
+						<p>This is usually due to trying to fetch a private users content</p>
+					<? else: ?>
+						<p><?= $error_msg ?></p>
+					<? endif; ?>
+					<a class="button button-primary"
+					   href="<?= admin_url( 'admin.php?page=instagram-generator' ) ?>">Start Again</a>
 
-					<ul class="ig_generator">
-						<?php foreach ( $instagram->result->data as $photo ): ?>
+				<? else: ?>
 
-							<li>
-								<input class="js-checkbox" type="checkbox" id="<?php echo $photo->id ?>"
-								       name="scraped_id[]"
-								       value="<?php echo $photo->id ?>"/>
+					<h3>Instagram</h3>
+					<h4>Select which images you wish to import</h4>
+					<p>Select images from a single page then click generate</p>
+					<form name="get_images" method="post" action="" enctype="multipart/form-data">
 
-								<label for="<?php echo $photo->id ?>">
-									<img src="<?php echo $photo->images->low_resolution->url ?>" width="125"
-									     height"125"/>
-								</label>
-							</li>
+						<ul class="ig_generator">
+							<?php foreach ( $instagram->result->data as $photo ): ?>
 
-						<?php endforeach; ?>
-					</ul>
+								<li>
+									<input class="js-checkbox" type="checkbox" id="<?php echo $photo->id ?>"
+									       name="scraped_id[]"
+									       value="<?php echo $photo->id ?>"/>
 
-					<div class="ig_generator">
-						<p class="submit">
-							<input type="hidden" name="searchtype" value="<?= $_POST['searchtype'] ?>"/>
-							<input type="hidden" name="searchinput" value="<?= $_POST['searchinput'] ?>"/>
-							<input type="hidden" name="checktype" value="<?= $_POST['checktype'] ?>">
-							<? if ( isset( $instagram->result->pagination->next_max_id ) ): ?>
-								<? if ( isset( $_POST['next_max_id'] ) ): ?>
-									<input type="hidden" name="next_max_id" value="<?= $_POST['next_max_id'] ?>"/>
-								<? endif; ?>
-							<? endif; ?>
-							<input type="submit" name="chosen_posts" id="submit" value="Generate"
-							       class="button button-primary">
-						</p>
+									<label for="<?php echo $photo->id ?>">
+										<img src="<?php echo $photo->images->low_resolution->url ?>" width="125"
+										     height"125"/>
+									</label>
+								</li>
 
-						<? if ( isset( $instagram->result->pagination->next_max_id ) ): ?>
-							<? if ( isset( $_POST['next_max_id'] ) ): ?>
-								<input type="hidden" name="max_id" value="<?= $_POST['next_max_id'] ?>"/>
+							<?php endforeach; ?>
+						</ul>
+
+						<div class="ig_generator">
+							<p class="submit">
 								<input type="hidden" name="searchtype" value="<?= $_POST['searchtype'] ?>"/>
 								<input type="hidden" name="searchinput" value="<?= $_POST['searchinput'] ?>"/>
+								<input type="hidden" name="checktype" value="<?= $_POST['checktype'] ?>">
+								<? if ( isset( $instagram->result->pagination->next_max_id ) ): ?>
+									<? if ( isset( $_POST['next_max_id'] ) ): ?>
+										<input type="hidden" name="next_max_id" value="<?= $_POST['next_max_id'] ?>"/>
+									<? endif; ?>
+								<? endif; ?>
+								<input type="submit" name="chosen_posts" id="submit" value="Generate"
+								       class="button button-primary">
+							</p>
+
+							<? if ( isset( $instagram->result->pagination->next_max_id ) ): ?>
+								<? if ( isset( $_POST['next_max_id'] ) ): ?>
+									<input type="hidden" name="max_id" value="<?= $_POST['next_max_id'] ?>"/>
+									<input type="hidden" name="searchtype" value="<?= $_POST['searchtype'] ?>"/>
+									<input type="hidden" name="searchinput" value="<?= $_POST['searchinput'] ?>"/>
+								<? endif; ?>
+								<button type="submit" name="next_max_id" id="submit"
+								        value="<?= $instagram->result->pagination->next_max_id; ?>"
+								        class="js-next button button-primary  float--right">Next Page
+								</button>
 							<? endif; ?>
-							<button type="submit" name="next_max_id" id="submit"
-							        value="<?= $instagram->result->pagination->next_max_id; ?>"
-							        class="js-next button button-primary  float--right">Next Page
-							</button>
-						<? endif; ?>
 
-					</div>
-				</form>
+						</div>
+					</form>
 
 
+				<?php endif; ?>
 			<?php endif; ?>
 
 			<? if ( ! empty( $_POST['scraped_id'] ) ): ?>
@@ -320,7 +343,7 @@ class AdminArea {
 					<? endif; ?>
 
 				<? endforeach; ?>
-				<p style='color:green'>Generator Task Completed Successfully!</p>
+				<p class="success">Generator Task Completed Successfully!</p>
 				<a class="button button-primary" href="<?= admin_url( 'edit.php?post_type=instagram-posts' ) ?>">See
 					Generated Links</a>
 			<? endif; ?>
