@@ -67,6 +67,15 @@
 	padding: 0;
 }
 
+.ig_generator__userimg {
+	display: inline-block;
+	vertical-align: middle;
+}
+
+.ig_generator .widefat td{
+	vertical-align: middle;
+}
+
 .text--right {
 	text-align: right;
 }
