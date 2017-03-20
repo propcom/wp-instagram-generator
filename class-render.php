@@ -1,168 +1,17 @@
 <?php
 
-class AdminArea {
-
-	public $icon;
-	public $options;
-
-	public static function get_option( $set, $property ) {
-
-		try {
-
-			$option = get_option( 'prop_' . $set );
-
-			if ( isset( $option[ $property ] ) && $option[ $property ] !== '' ) {
-
-				return $option[ $property ];
-
-			} else {
-
-				return false;
-
-			}
-
-		} catch ( Exception $e ) {
-
-			print $e->getMessage();
-
-		}
-
-	}
+class Render {
 
 	public function __construct() {
 
-		if ( is_admin() ) {
-
-			$this->icon = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0idXRmLTgiPz4KPCEtLSBHZW5lcmF0b3I6IEFkb2JlIElsbHVzdHJhdG9yIDE5LjIuMSwgU1ZHIEV4cG9ydCBQbHVnLUluIC4gU1ZHIFZlcnNpb246IDYuMDAgQnVpbGQgMCkgIC0tPgo8c3ZnIHZlcnNpb249IjEuMSIgaWQ9IkxheWVyXzEiIHhtbG5zOnNrZXRjaD0iaHR0cDovL3d3dy5ib2hlbWlhbmNvZGluZy5jb20vc2tldGNoL25zIgoJIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgeG1sbnM6eGxpbms9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGxpbmsiIHg9IjBweCIgeT0iMHB4IiB2aWV3Qm94PSIwIDAgMzggMzgiCgkgc3R5bGU9ImVuYWJsZS1iYWNrZ3JvdW5kOm5ldyAwIDAgMzggMzg7IiB4bWw6c3BhY2U9InByZXNlcnZlIj4KPHN0eWxlIHR5cGU9InRleHQvY3NzIj4KCS5zdDB7ZmlsbDojMjcyNzI1O30KPC9zdHlsZT4KPHRpdGxlPlNsaWNlIDE8L3RpdGxlPgo8ZGVzYz5DcmVhdGVkIHdpdGggU2tldGNoLjwvZGVzYz4KPGcgaWQ9IlBhZ2UtMV8xXyIgc2tldGNoOnR5cGU9Ik1TUGFnZSI+Cgk8ZyBpZD0icHJvcGVsbGVyIiBza2V0Y2g6dHlwZT0iTVNMYXllckdyb3VwIj4KCQk8ZyBpZD0iUGFnZS0xIiBza2V0Y2g6dHlwZT0iTVNTaGFwZUdyb3VwIj4KCQkJPGcgaWQ9IlByb3BlbGxlciI+CgkJCQk8cGF0aCBpZD0iU2hhcGUiIGNsYXNzPSJzdDAiIGQ9Ik0yMi42LDIuOGwtMy4zLDBsMCwwaC00LjFMOSwzNi4zbDAsMEg5bDAsMGMzLjIsMCw2LjMtMi41LDYuOS01LjdsMCwwbDAuMS0wLjhoMGwwLjItMS4ybDMsMAoJCQkJCWMzLjIsMCw2LjUtMi4zLDctNS4zbDAsMGwyLjUtMTMuNWwwLDBjMC4xLTAuNCwwLjEtMC45LDAuMS0wLjlDMjguOSw1LjUsMjYsMi44LDIyLjYsMi44TDIyLjYsMi44TDIyLjYsMi44eiBNMjAuMiwyNC41CgkJCQkJTDIwLjIsMjQuNWMwLDAsMCwwLjItMC4xLDAuM2MtMC4xLDAuOC0wLjksMS4zLTEuNywxLjNoLTEuN2wzLjgtMjAuOWgxLjFjMC45LDAsMS43LDAuNywxLjcsMS42TDIwLjIsMjQuNUwyMC4yLDI0LjV6Ii8+CgkJCTwvZz4KCQk8L2c+Cgk8L2c+CjwvZz4KPC9zdmc+Cg==';
-
-			add_action( 'admin_menu', [ $this, 'create_admin_menu' ] );
-			add_action( 'admin_init', [ $this, 'register_admin_settings' ] );
-
-			add_theme_support( 'post-thumbnails' );
-			add_image_size( 'admin_thumb', 60, 60 );
-			add_filter( 'manage_posts_columns', [ $this, 'add_img_column' ] );
-			add_filter( 'manage_posts_custom_column', [ $this, 'manage_img_column' ], 10, 2 );
-
-			if ( ! post_type_exists( 'instagram-posts' ) ) {
-				add_action( 'init', [ $this, 'create_post_type' ] );
-			}
-
-		}
-
-	}
-
-	public function add_img_column( $columns ) {
-		$columns['img'] = 'Featured Image';
-
-		return $columns;
-	}
-
-	public function manage_img_column( $column_name, $post_id ) {
-		if ( $column_name == 'img' ) {
-			echo the_post_thumbnail( 'admin_thumb' );
-
-			return get_the_post_thumbnail( $post_id, 'thumbnail' );
-		}
-	}
-
-	public function create_admin_menu() {
-
-		add_menu_page(
-
-			'Instagram Generator',
-			'InstaProp',
-			'administrator',
-			'instagram-generator',
-			[ $this, 'render_generator_page' ],
-			$this->icon, 2
-
-		);
-
-	}
-
-	public function register_admin_settings() {
-
-		register_setting(
-
-			'propeller_generator',
-			'prop_generator'
-
-		);
-
-	}
-
-	public function create_post_type() {
-
-		register_post_type( 'instagram-posts',
-
-			array(
-
-//  What will the CPT be known as?
-				'labels'                => array(
-					'name'               => __( 'Instagram Posts', 'instagram posts' ),
-					'singular_name'      => __( 'Instagram Post', 'instagram post' ),
-					'menu_name'          => __( 'Instagram' ),
-					'name_admin_bar'     => __( 'Instagram' ),
-					'add_new'            => __( 'Add New' ),
-					'add_new_item'       => __( 'Add New Post' ),
-					'new_item'           => __( 'New Post' ),
-					'edit_item'          => __( 'Edit Post' ),
-					'view_item'          => __( 'View Post' ),
-					'all_items'          => __( 'All Instagram Posts' ),
-					'search_items'       => __( 'Search Instagram Posts' ),
-					'parent_item_colon'  => __( 'Parent Instagram Posts:' ),
-					'not_found'          => __( 'No instagram posts found.' ),
-					'not_found_in_trash' => __( 'No instagram posts found in Trash.' )
-				),
-
-//  Settings - how will the CPT behave?
-				'with_front'            => true,
-				'publicly_queryable'    => false,
-				'public'                => true,
-				'show_ui'               => true,
-				'rewrite'               => array( 'slug' => 'instagram-posts' ),
-				'exclude_from_search'   => false,
-				'capability_type'       => 'post',
-				'has_archive'           => true,
-				'menu_icon'             => 'dashicons-format-chat',
-				'menu_position'         => 19,
-				'rest_controller_class' => 'WP_REST_Posts_Controller',
-
-//  What editable fields will the CPT support?
-				'supports'              => array(
-					'title',
-					'editor',
-					'thumbnail'
-				),
-
-// Which Taxonomies will be applicable?  //
-				'taxonomies'            => array(
-					'instagram-posts'
-				),
-
-			)
-
-		);
-
-	}
-
-	public function remove_admin_submenus() {
-
-		remove_submenu_page( 'edit.php?post_type=prop-social-posts', 'edit-tags.php?taxonomy=prop-social-media-accounts&amp;post_type=prop-social-posts' );
-		remove_submenu_page( 'edit.php?post_type=prop-social-posts', 'post-new.php?post_type=prop-social-posts' );
-
-	}
-
-
-	public function render_generator_page() {
-
-		$this->options = get_option( 'prop_generator' ); ?>
+		?>
 
 		<section class="wrap">
 
 			<h1>Propeller Instagram Generator</h1>
 			<?php // var_dump( $_POST ); ?>
 
+			<?php // search based on username gives the option to fetch a users posts ?>
 			<?php if ( isset( $_POST['searchinput'] ) && $_POST['searchtype'] == 'users' && isset( $_POST['checktype'] ) && $_POST['checktype'] == 'users' ): ?>
 				<?php $instagramUsers = new InstagramFetch; ?>
 				<?php if ( isset( $instagramUsers->result ) ): ?>
@@ -180,12 +29,15 @@ class AdminArea {
 							</tr>
 							</thead>
 							<tbody id="the-list">
+							<?php // format returned user results into table ?>
 							<?php foreach ( $instagramUsers->result->data as $scraped_user ): ?>
 
 								<tr>
 									<td data-colname="Author">
 										<img src="<?= $scraped_user->profile_picture; ?>"
-										     alt="<?= $scraped_user->username; ?>" width="50"/>
+										     class="ig_generator__userimg"
+										     alt="<?= $scraped_user->username; ?>"
+										     width="50"/>
 										<?= $scraped_user->username; ?>
 									</td>
 									<td>
@@ -205,7 +57,7 @@ class AdminArea {
 				<? endif; ?>
 
 			<?php else: ?>
-
+				<? // Start of the form choose which data to search for ?>
 				<? if ( empty( $_POST['scraped_results'] ) && empty( $_POST['searchinput'] ) ): ?>
 
 					<h4>Please select a search type</h4>
@@ -223,7 +75,7 @@ class AdminArea {
 							</li>
 							<li>
 								<input class="js-searchtype" type="radio" name="searchtype" value="locations">
-								<strong>Location</strong> will take a location ID number, you may need to search on <a
+								<strong>Location</strong> will take a location ID number, you may need to search in the URL on <a
 										href="https://www.instagram.com/explore/locations/227846917/rugby-warwickshire/"
 										target="_blank">Instagram for
 									it</a>
@@ -235,6 +87,7 @@ class AdminArea {
 							<tr>
 								<th scope="row"><label for="searchinput">Search Input</label></th>
 								<td>
+									<?php // set some limits for the input box to save js validation ?>
 									<input id="searchinput"
 									       value=""
 									       class="regular-text"
@@ -257,6 +110,7 @@ class AdminArea {
 
 			<?php endif; ?>
 
+			<?php // error response ?>
 			<?php if ( empty( $_POST['chosen_posts'] ) && isset( $_POST['searchtype'] ) && isset( $_POST['searchinput'] ) && isset( $_POST['checktype'] ) && $_POST['checktype'] != 'users' ) : ?>
 
 				<?php $instagram = new InstagramFetch; ?>
@@ -275,7 +129,7 @@ class AdminArea {
 					   href="<?= admin_url( 'admin.php?page=instagram-generator' ) ?>">Start Again</a>
 
 				<? else: ?>
-
+				<?php // render images ready for selection after fetch ?>
 					<h3>Instagram</h3>
 					<h4>Select which images you wish to import</h4>
 					<p>Select images from a single page then click generate</p>
@@ -299,10 +153,13 @@ class AdminArea {
 						</ul>
 
 						<div class="ig_generator">
+							<?php // Generate the selected images ?>
 							<p class="submit">
 								<input type="hidden" name="searchtype" value="<?= $_POST['searchtype'] ?>"/>
 								<input type="hidden" name="searchinput" value="<?= $_POST['searchinput'] ?>"/>
 								<input type="hidden" name="checktype" value="<?= $_POST['checktype'] ?>">
+
+								<?php //pass the next_max_id so it fetches correct page on post ?>
 								<? if ( isset( $instagram->result->pagination->next_max_id ) ): ?>
 									<? if ( isset( $_POST['next_max_id'] ) ): ?>
 										<input type="hidden" name="next_max_id" value="<?= $_POST['next_max_id'] ?>"/>
@@ -312,6 +169,7 @@ class AdminArea {
 								       class="button button-primary">
 							</p>
 
+							<?php // render next page button if there are more than 30 posts ?>
 							<? if ( isset( $instagram->result->pagination->next_max_id ) ): ?>
 								<? if ( isset( $_POST['next_max_id'] ) ): ?>
 									<input type="hidden" name="max_id" value="<?= $_POST['next_max_id'] ?>"/>
@@ -332,7 +190,7 @@ class AdminArea {
 			<?php endif; ?>
 
 			<? if ( ! empty( $_POST['scraped_id'] ) ): ?>
-
+				<?php // send the selected images to the post generator function ?>
 				<?php $instagram = new InstagramFetch; ?>
 				<?php $post_generator = new PostGenerator(); ?>
 
@@ -343,8 +201,9 @@ class AdminArea {
 					<? endif; ?>
 
 				<? endforeach; ?>
+				<?php // success message ?>
 				<p class="success">Generator Task Completed Successfully!</p>
-				<a class="button button-primary" href="<?= admin_url( 'edit.php?post_type=instagram-posts' ) ?>">See
+				<a class="button button-primary" href="<?= admin_url( 'edit.php?post_type=instagram' ) ?>">See
 					Generated Links</a>
 			<? endif; ?>
 
@@ -352,6 +211,5 @@ class AdminArea {
 		<?php
 
 	}
-
 
 }
