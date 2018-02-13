@@ -18,7 +18,7 @@ class InstagramFetch {
 
 	public $result;
 	public $error = false;
-	const ACCESS_TOKEN = '414143281.e2a9043.6d4acb839c38488f831d826bf29d32fe';
+	const ACCESS_TOKEN = '414143281.e2a9043.c4fd9115f0ab479da4122b0ddfe25169';
 
 	public function __construct( $count = 30 ) {
 
