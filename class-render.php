@@ -66,7 +66,11 @@ class Render {
 					<form method="post" action="">
 						<ul class="list">
 							<li>
-								<input class="js-searchtype" type="radio" name="searchtype" value="users" checked>
+								<input class="js-searchtype" type="radio" name="searchtype" value="owner">
+								<strong>Owner</strong> will fetch posts from the owner of this account
+							</li>
+							<li>
+								<input class="js-searchtype" type="radio" name="searchtype" value="users">
 								<strong>Username</strong> will take a username and search for it
 							</li>
 							<li>
@@ -94,7 +98,6 @@ class Render {
 									       pattern="^[A-Za-z0-9_]{1,32}$"
 									       type="text"
 									       name="searchinput"
-									       required="required"
 									       placeholder="no need to specify @ or # symbols"
 									       autocomplete="on">
 								</td>
@@ -127,7 +130,11 @@ class Render {
 					<? endif; ?>
 					<a class="button button-primary"
 					   href="<?= admin_url( 'admin.php?page=instagram-generator' ) ?>">Start Again</a>
-
+				<? elseif($instagram->result == null): ?>
+					<h3 class="error">Oops!</h3>
+					<h4>Sorry, no images were found. Please try again.</h4>
+					<a class="button button-primary"
+					   href="<?= admin_url( 'admin.php?page=instagram-generator' ) ?>">Start Again</a>
 				<? else: ?>
 				<?php // render images ready for selection after fetch ?>
 					<h3>Instagram</h3>

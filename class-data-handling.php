@@ -18,9 +18,13 @@ class InstagramFetch {
 
 	public $result;
 	public $error = false;
-	const ACCESS_TOKEN = '414143281.e2a9043.c4fd9115f0ab479da4122b0ddfe25169';
 
 	public function __construct( $count = 30 ) {
+
+		// this will set the option to be the propeller manager social page
+		$option = get_option('prop_social');
+		// set the access token to be token field of the option
+		$this->access_token = $option['instagram_token'];
 
 		// pass the count - max is 33 results so round down to 30
 		$this->count      = $count;
@@ -52,12 +56,16 @@ class InstagramFetch {
 	// create url based on posted data
 	protected function get_searchurl( $searchtype, $searchinput ) {
 
-		if ( $searchtype == 'users' && isset($_POST['checktype']) && $_POST['checktype'] == 'users' ) {
+		if( $searchtype == 'owner'){
+			// fetch based on access token
+			return sprintf( 'https://api.instagram.com/v1/users/self/media/recent?access_token=%s&count=%s%s', $this->access_token, $this->count, $this->pagination );
+		}
+		elseif ( $searchtype == 'users' && isset($_POST['checktype']) && $_POST['checktype'] == 'users' ) {
 			// searching usernames
-			return sprintf( 'https://api.instagram.com/v1/%s/search?q=%s&access_token=%s&count=%s', $searchtype, $searchinput, static::ACCESS_TOKEN, $this->count );
+			return sprintf( 'https://api.instagram.com/v1/%s/search?q=%s&access_token=%s&count=%s', $searchtype, $searchinput, $this->access_token, $this->count );
 		} else {
 			// search hastags, selected users or locations
-			return sprintf( 'https://api.instagram.com/v1/%s/%s/media/recent?access_token=%s&count=%s%s', $searchtype, $searchinput, static::ACCESS_TOKEN, $this->count, $this->pagination );
+			return sprintf( 'https://api.instagram.com/v1/%s/%s/media/recent?access_token=%s&count=%s%s', $searchtype, $searchinput, $this->access_token, $this->count, $this->pagination );
 		}
 
 	}
