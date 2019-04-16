@@ -1,7 +1,12 @@
 {
   "name": "propcom/wp-instagram-generator",
+  "version": "master",
   "type": "wordpress-plugin",
   "require": {
     "composer/installers": "v1.6.5"
-  }
+  },
+  "dist": {
+        "url": "git@github.com:propcom/wp-instagram-generator.git",
+        "type": "git"
+    }
 }
