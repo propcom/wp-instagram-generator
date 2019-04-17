@@ -31,7 +31,6 @@ class Render {
 							<tbody id="the-list">
 							<?php // format returned user results into table ?>
 							<?php foreach ( $instagramUsers->result->data as $scraped_user ): ?>
-<? var_dump($scraped_user); ?>
 								<tr>
 									<td data-colname="Author">
 										<img src="<?= $scraped_user->user->profile_picture; ?>"
