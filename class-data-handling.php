@@ -56,8 +56,6 @@ class InstagramFetch {
 
 	// create url based on posted data
 	protected function get_searchurl( $searchtype, $searchinput ) {
-		
-		var_dump($searchtype, $searchinput, $this->access_token);
 
 		if( $searchtype == 'owner'){
 			// fetch based on access token
@@ -65,7 +63,8 @@ class InstagramFetch {
 		}
 		elseif ( $searchtype == 'users' && isset($_POST['checktype']) && $_POST['checktype'] == 'users' ) {
 			// searching usernames
-			return sprintf( 'https://api.instagram.com/v1/%s/search?q=%s&access_token=%s&count=%s', $searchtype, $searchinput, $this->access_token, $this->count );
+			return sprintf( 'https://api.instagram.com/v1/%s/%s/media/recent/?access_token=%s&count=%s', $searchtype, $searchinput, $this->access_token, $this->count );
+
 		} else {
 			// search hastags, selected users or locations
 			return sprintf( 'https://api.instagram.com/v1/%s/%s/media/recent?access_token=%s&count=%s%s', $searchtype, $searchinput, $this->access_token, $this->count, $this->pagination );
