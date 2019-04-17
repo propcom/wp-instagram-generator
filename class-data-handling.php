@@ -55,6 +55,8 @@ class InstagramFetch {
 
 	// create url based on posted data
 	protected function get_searchurl( $searchtype, $searchinput ) {
+		
+		var_dump($searchtype, $searchinput);
 
 		if( $searchtype == 'owner'){
 			// fetch based on access token
