@@ -22,7 +22,9 @@ class InstagramFetch {
 	public function __construct( $count = 30 ) {
 
 		// this will set the option to be the propeller manager social page
-		$option = get_option('prop_social') || get_field('instagram_token', 'option');
+		$option = get_option('prop_social');
+		
+		$option2 = get_field('instagram_token', 'option');
 		// set the access token to be token field of the option
 		$this->access_token = $option['instagram_token'];
 
@@ -56,7 +58,7 @@ class InstagramFetch {
 	// create url based on posted data
 	protected function get_searchurl( $searchtype, $searchinput ) {
 		
-		var_dump($searchtype, $searchinput, $this->access_token);
+		var_dump($searchtype, $searchinput, $option, $option2);
 
 		if( $searchtype == 'owner'){
 			// fetch based on access token
