@@ -22,7 +22,7 @@ class InstagramFetch {
 	public function __construct( $count = 30 ) {
 
 		// this will set the option to be the propeller manager social page
-		$option = get_field('social_media_settings', 'option')
+		$option = get_field('social_media_settings', 'option');
 		
 		// set the access token to be token field of the option
 		$this->access_token = $option['instagram_token'];
