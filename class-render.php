@@ -31,18 +31,18 @@ class Render {
 							<tbody id="the-list">
 							<?php // format returned user results into table ?>
 							<?php foreach ( $instagramUsers->result->data as $scraped_user ): ?>
-<? var_dump($scraped_user->user); ?>
+<? var_dump($scraped_user); ?>
 								<tr>
 									<td data-colname="Author">
-										<img src="<?= $scraped_user->profile_picture; ?>"
+										<img src="<?= $scraped_user->user->profile_picture; ?>"
 										     class="ig_generator__userimg"
-										     alt="<?= $scraped_user->username; ?>"
+										     alt="<?= $scraped_user->user->username; ?>"
 										     width="50"/>
-										<?= $scraped_user->username; ?>
+										<?= $scraped_user->user->username; ?>
 									</td>
 									<td>
 										<button type="submit" name="searchinput" id="submit"
-										        value="<?= $scraped_user->id; ?>"
+										        value="<?= $scraped_user->user->id; ?>"
 										        class="button button-primary">Fetch
 										</button>
 									</td>
